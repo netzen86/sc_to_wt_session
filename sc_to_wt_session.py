@@ -2,10 +2,8 @@
 
 import os
 import re
-from pprint import pprint
-
-
-path_to_sessions = "/home/netzen/Study/conv_seccrt_windterm/seccrt/tmp"
+import uuid
+import json
 
 
 def conv_seccrt(path):
@@ -21,8 +19,60 @@ def conv_seccrt(path):
     return d
 
 
-# conv_seccrt(path_to_sessions)
-sessions = (conv_seccrt(path_to_sessions))
+def dict_generator(indict, pre=None):
+    pre = pre[:] if pre else []
+    if isinstance(indict, dict):
+        for key, value in indict.items():
+            if isinstance(value, dict):
+                for d in dict_generator(value, pre + [key]):
+                    yield d
+            elif isinstance(value, list) or isinstance(value, tuple):
+                for v in value:
+                    for d in dict_generator(v, pre + [key]):
+                        yield d
+            else:
+                yield pre + [key, value]
+    else:
+        yield pre + [indict]
 
-for key, value in sessions.items():
-    print(key, value)
+
+if __name__ == "__main__":
+
+    path_to_sessions = (
+        "/home/netzen/Study/conv_seccrt_windterm/seccrt/Sessions"
+    )
+    session_cfg = {
+            "session.group": "",
+            "session.icon": "session::square-mediumorchid",
+            "session.label": "",
+            "session.port": 22,
+            "session.protocol": "SSH",
+            "session.target": "",
+            "session.uuid": "f7d37bf6-f2a4-4f0f-9e46-833a5f0f2cab",
+            "ssh.sftp": False
+        }
+
+    sessions = (conv_seccrt(path_to_sessions))
+    config = []
+
+    for elements in dict_generator(sessions):
+        group = ""
+        cfg = session_cfg.copy()
+        cfg["session.group"] = ""
+        cfg["session.label"] = ""
+        cfg["session.target"] = ""
+        cfg["session.uuid"] = ""
+        for element in elements:
+            if ".ini" not in element:
+                group = group + ">" + element
+            elif ".ini" in element:
+                cfg["session.group"] = group[1:]
+                cfg["session.label"] = element[:-4]
+                cfg["session.target"] = elements[-1:][0]
+                cfg["session.uuid"] = str(uuid.uuid4())
+        config.append(cfg)
+
+    output_cfg = json.dumps(config, indent=4)
+
+    with open("user.sessions", "w") as outfile:
+        outfile.write(output_cfg)
