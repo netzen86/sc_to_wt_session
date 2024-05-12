@@ -38,17 +38,23 @@ def dict_generator(indict, pre=None):
 
 if __name__ == "__main__":
 
+    # pass to session files from securecrt
     path_to_sessions = (
-        "/home/netzen/Study/conv_seccrt_windterm/seccrt/Sessions"
+        "/seccrt/Sessions"
     )
+
+    # uuid from onekeys.config
+    onekey = "9b7f66aa-6830-408a-88a9-bcb42e8c6ba0"
+
     session_cfg = {
             "session.group": "",
             "session.icon": "session::square-mediumorchid",
             "session.label": "",
+            "session.oneKey": onekey,
             "session.port": 22,
             "session.protocol": "SSH",
             "session.target": "",
-            "session.uuid": "f7d37bf6-f2a4-4f0f-9e46-833a5f0f2cab",
+            "session.uuid": "",
             "ssh.sftp": False
         }
 
@@ -72,7 +78,5 @@ if __name__ == "__main__":
                 cfg["session.uuid"] = str(uuid.uuid4())
         config.append(cfg)
 
-    output_cfg = json.dumps(config, indent=4)
-
     with open("user.sessions", "w") as outfile:
-        outfile.write(output_cfg)
+        outfile.write(json.dumps(config, indent=4))
